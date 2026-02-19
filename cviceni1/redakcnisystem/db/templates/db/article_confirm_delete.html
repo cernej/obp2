@@ -1,0 +1,14 @@
+{% extends 'db/base.html' %}
+
+{% block title %}Smazat článek{% endblock %}
+
+{% block content %}
+    <h2>Smazat článek</h2>
+    <p>Opravdu chcete smazat článek <strong>{{ article.title }}</strong>?</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Ano, smazat</button>
+        <a href="{% url 'db:article_detail' article.pk %}">Ne, zpět</a>
+    </form>
+{% endblock %}

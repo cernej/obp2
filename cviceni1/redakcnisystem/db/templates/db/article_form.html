@@ -1,0 +1,33 @@
+{% extends 'db/base.html' %}
+
+{% block title %}{{ action }} článek{% endblock %}
+
+{% block content %}
+    <h2>{{ action }} článek</h2>
+
+    {% if error %}
+        <p><strong>{{ error }}</strong></p>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <p>
+            <label for="title">Název:</label><br>
+            <input id="title" name="title" type="text" value="{{ article.title|default:'' }}" required>
+        </p>
+
+        <p>
+            <label for="author">Autor:</label><br>
+            <input id="author" name="author" type="text" value="{{ article.author|default:'' }}" required>
+        </p>
+
+        <p>
+            <label for="content">Obsah:</label><br>
+            <textarea id="content" name="content" rows="10" cols="60" required>{{ article.content|default:'' }}</textarea>
+        </p>
+
+        <button type="submit">{{ action }}</button>
+        <a href="{% url 'db:article_list' %}">Zrušit</a>
+    </form>
+{% endblock %}

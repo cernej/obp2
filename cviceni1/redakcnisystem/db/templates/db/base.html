@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Redakční systém{% endblock %}</title>
+</head>
+<body>
+    <header>
+        <h1>Redakční systém</h1>
+        <nav>
+            <a href="{% url 'db:index' %}">Domů</a> |
+            <a href="{% url 'db:article_list' %}">Články</a> |
+            <a href="{% url 'db:article_create' %}">Nový článek</a>
+        </nav>
+        <hr>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
