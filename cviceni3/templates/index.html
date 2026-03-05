@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8" />
+  <title>FX – ČNB</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 2rem; }
+    .row { display:flex; gap:1rem; align-items:center; flex-wrap: wrap; }
+    code { background:#f3f3f3; padding:0.1rem 0.3rem; border-radius:6px; }
+  </style>
+</head>
+<body>
+  <h1>Kurzy měn (ČNB → SQLite)</h1>
+
+  <div class="row">
+    <form method="post" action="/update">
+      <button type="submit">Stáhnout a uložit dnešní kurzovní lístek</button>
+    </form>
+    <span>Tip: endpoint vrací JSON s počtem vložených řádků.</span>
+  </div>
+
+  <h2>Měny v databázi</h2>
+  {% if codes %}
+    <ul>
+      {% for c in codes %}
+        <li><a href="{{ url_for('code_info', code=c) }}">{{ c }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Zatím nic. Klikni na <strong>Stáhnout…</strong>.</p>
+  {% endif %}
+
+  <p style="margin-top:2rem;">
+    Zdroj: ČNB daily.txt (oficiální fixing). 
+  </p>
+</body>
+</html>
