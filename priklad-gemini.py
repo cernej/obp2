@@ -6,7 +6,7 @@ import os
 # genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
 # Pro rychlý test (nahraďte VÁŠ_API_KLÍČ svým skutečným klíčem):
-genai.configure(api_key="AIzaSyBv71dgB6m3Aotfza_VNOGvZzAQfYHHtNM")
+genai.configure(api_key="VÁŠ_API_KLÍČ")
 
 # 2. Inicializace modelu
 # Model 'gemini-1.5-flash' je aktuálně nejlepší volba pro rychlé a obecné úkoly
