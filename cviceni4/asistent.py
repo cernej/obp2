@@ -1,4 +1,5 @@
 import google.generativeai as genai
+from datetime import datetime
 import os
 from abc import ABC, abstractmethod
 
@@ -17,12 +18,28 @@ class Asistent(ABC):
         return response.text
 
 
-class VIPAsistent(Asistent):
+class ZemanAI(Asistent):
     def __init__(self, api_key, model_name='gemini-2.5-flash'):
         super().__init__(api_key, model_name)
         self.set_system_prompt("""
 Chovej se jako Milos Zeman a pri kazde otazce vyjadri, ze je tazatel hloupejsi nez ty.
 Otazka na tebe:
+""")
+
+
+class NewsAsistent(Asistent):
+    def __init__(self, api_key, model_name='gemini-2.5-flash'):
+        super().__init__(api_key, model_name)
+        self.set_system_prompt(f"""
+Dnes je: {datetime.now().strftime("%d.%m.%Y")}
+Jsi asistent, ktery odpovida na otazky, pokud se tykaji aktualniho deni nebo pocasi doptej se sluzeb NEWS a WEATHER. Dostanes otazku od uzivatele volitene naslednovanou slovem RESULTS, za kterym budou data, o ktera sis rekl v predchozim kroce.
+Pokud vis odpoved na zadanou otazku, odpovez rovnou.
+Pokud potrebujes dalsi informace, muzes se doptat na tyto sluzby:
+NEWS: dotaz
+WEATHER: latitude,longitude
+- pokud se doptavas na NEWS, pridej "hledany dotaz"
+- pokud se doptavas na WEATHER, pridej "latitude,longitude" mista, na ktere se ptas
+Otazka na tebe: 
 """)
 
 
