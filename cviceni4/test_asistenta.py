@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     dotaz = sys.argv[1]
 
-    news = NewsAsistent("AIzaSyDCr9Y5lRjxD2xGoiZ-r60Z8w9acDRQJM8")
+    news = NewsAsistent("AIzaSyCuNk-0E-ZWEmz5IxYLprFNn_doz2U6vgo")
     rag_novinky = RAGNovinky('https://api-web.novinky.cz/v1/timelines/62baab43a1bac57b7436dc07?xml=rss')
     rag_pocasi = RAGPocasi('https://api.met.no/weatherapi/locationforecast/2.0/compact?lat={}&lon={}')
 
