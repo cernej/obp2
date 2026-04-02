@@ -1,6 +1,8 @@
+import os
 import requests
 from bs4 import BeautifulSoup
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 
 class RAG(ABC):
@@ -11,7 +13,7 @@ class RAG(ABC):
 
 class WikiRAG(RAG):
     SEARCH_URL = "https://search.seznam.cz/"
-    HEADERS = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"}
+    HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.3"}
 
     def retrieve(self, query: str) -> str:
         search_query = f"{query} site:cs.wikipedia.org"
@@ -175,12 +177,118 @@ class RateRAG(RAG):
         return "\n".join(result_lines)
 
 
+class KiwiRAG(RAG):
+    API_URL = "https://tequila-api.kiwi.com/v2/search"
+
+    def __init__(self, api_key: str):
+        self.api_key = api_key.strip()
+
+    def _parse_date(self, value: str) -> str | None:
+        date_str = value.strip()
+        for fmt in ("%Y-%m-%d", "%d.%m.%Y", "%d/%m/%Y"):
+            try:
+                return datetime.strptime(date_str, fmt).strftime("%d/%m/%Y")
+            except ValueError:
+                continue
+        return None
+
+    def retrieve(self, query: str) -> str:
+        if not self.api_key:
+            return "Chybi KIWI_API_KEY. Nastav environment promennou pro pristup do Kiwi API."
+
+        parts = [p.strip() for p in query.split(",")]
+        if len(parts) != 3:
+            return "Chybny format dotazu. Pouzij 'odkud,kam,kdy' (napr. PRG,BCN,2026-05-20)."
+
+        fly_from = parts[0].upper()
+        fly_to = parts[1].upper()
+        if len(fly_from) != 3 or len(fly_to) != 3:
+            return "Prozatim podporuji IATA kody letist (3 pismena), napr. PRG,BCN,2026-05-20."
+
+        flight_date = self._parse_date(parts[2])
+        if not flight_date:
+            return "Chybny format data. Pouzij YYYY-MM-DD, DD.MM.YYYY nebo DD/MM/YYYY."
+
+        # Kiwi API byva citlive na kombinace parametru; zkusime 2 bezne varianty datumu.
+        date_variants = [flight_date]
+        try:
+            date_variants.append(datetime.strptime(flight_date, "%d/%m/%Y").strftime("%Y-%m-%d"))
+        except ValueError:
+            pass
+
+        payload = None
+        last_error = ""
+        for date_value in date_variants:
+            response = requests.get(
+                self.API_URL,
+                params={
+                    "fly_from": fly_from,
+                    "fly_to": fly_to,
+                    "date_from": date_value,
+                    "date_to": date_value,
+                    "limit": 5,
+                    "curr": "CZK",
+                    "sort": "price",
+                    "adults": 1,
+                    "flight_type": "oneway",
+                },
+                headers={"apikey": self.api_key},
+                timeout=10,
+            )
+
+            if response.ok:
+                payload = response.json()
+                break
+
+            try:
+                error_json = response.json()
+                last_error = error_json.get("message") or str(error_json)
+            except ValueError:
+                last_error = response.text.strip()[:300]
+
+        if payload is None:
+            return (
+                "Kiwi API vratilo chybu pri hledani letu. "
+                f"Zkontroluj KIWI_API_KEY a format dotazu 'ODKUD,KAM,KDY'. Detaily: {last_error or 'neuvedeno'}"
+            )
+
+        flights = payload.get("data", [])
+        if not flights:
+            return f"Nenalezeny zadne lety pro trasu {fly_from}->{fly_to} na {flight_date}."
+
+        lines = [f"Nalezeno {len(flights)} letu pro {fly_from}->{fly_to} ({flight_date}):"]
+        for idx, item in enumerate(flights, start=1):
+            city_from = item.get("cityFrom", "?")
+            code_from = item.get("flyFrom", fly_from)
+            city_to = item.get("cityTo", "?")
+            code_to = item.get("flyTo", fly_to)
+            departure = (item.get("local_departure") or "").replace("T", " ")[:16]
+            arrival = (item.get("local_arrival") or "").replace("T", " ")[:16]
+            price = item.get("price", "?")
+            currency = item.get("currency", "CZK")
+            airlines = ",".join(item.get("airlines", [])) or "?"
+            deep_link = item.get("deep_link", "")
+
+            lines.append(
+                f"{idx}. {city_from} ({code_from}) -> {city_to} ({code_to}), "
+                f"odlet {departure}, prilet {arrival}, cena {price} {currency}, dopravce {airlines}"
+            )
+            if deep_link:
+                lines.append(f"   Rezervace: {deep_link}")
+
+        return "\n".join(lines)
+
+
 if __name__ == "__main__":
     # rag = WikiRAG()
     # query = "volby do poslanecke snemovny 2025"
     # result = rag.retrieve(query)
     # print(result)
-    rag = WeatherRAG()
-    query = "50.0755,14.4378"  # Praha
+    # rag = WeatherRAG()
+    # query = "50.0755,14.4378"  # Praha
+    # result = rag.retrieve(query)
+    # print(result)
+    rag = KiwiRAG(os.getenv("KIWI_API_KEY", ""))
+    query = "PRG,BCN,20/05/2026"
     result = rag.retrieve(query)
     print(result)

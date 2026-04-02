@@ -2,7 +2,7 @@ import google.generativeai as genai
 from datetime import datetime
 import sys
 from abc import ABC, abstractmethod
-from rag import WikiRAG, WeatherRAG, RateRAG
+from rag import KiwiRAG, WikiRAG, WeatherRAG, RateRAG
 
 
 
@@ -16,9 +16,12 @@ class LLM(ABC):
     def set_system_prompt(self, prompt):
         self.system_prompt = prompt
     
-    def generate_content(self, prompt):
+    def generate_content(self, prompt, context=None):
         self.context.append(prompt)
-        response = self.model.generate_content(self.system_prompt + prompt)
+        context = "\n\nKontext nasi predchozi konverzace, pouzivej pouze, pokud nevis odpoved z predchozi casti textu: " + "\n".join(self.context) if context else ""
+        dotaz = self.system_prompt + prompt + context
+        print(f"LLM dotaz: {dotaz}")
+        response = self.model.generate_content(dotaz)
         self.context.append(response.text)
         return response.text
 
@@ -38,7 +41,7 @@ class ZemanLLM(LLM):
 class RagLLM(LLM):
     def __init__(self, api_key, model_name='gemini-2.5-flash'):
         super().__init__(api_key, model_name)
-        self.set_system_prompt("""
+        self.set_system_prompt(f"""
 Dnes je {datetime.now().strftime('%Y-%m-%d')}.
 Jsi asistent, ktery odpovida uzivateli na dotazy.
 Pokud odpoved znas s jistotou, odpovez rovnou.
@@ -46,6 +49,7 @@ Pokud se ti zda, ze se uzivatel pta na veci, ktere jeste nenastaly nebo pokud po
 - Pokud potrebujes vyhledat faktickou informaci nebo aktualni udalost (takovou o ktere si myslis, ze jeste nenastala): WIKI: <strucny dotaz vhodny pro vyhledavani>
 - Pokud potrebujes informace o aktualnim pocasi: WEATHER: <zemepisna_sirka>,<zemepisna_delka>
 - Pokud potrebujes aktualni kurz men: RATE: <KOD_MENY1>,<KOD_MENY2>,...
+- Pokud potrebujes vyhledat lety pres Kiwi API: KIWI: <odkud>,<kam>,<kdy>
 Zadny dalsi text nepridavej. Dotaz ve WIKI: radku pis cesky a co nejpresneji vystihni, co je treba vyhledat.
                                """)
 
@@ -58,11 +62,12 @@ if __name__ == "__main__":
     wiki = WikiRAG()
     weather = WeatherRAG()
     rates = RateRAG()
+    kiwi = KiwiRAG('VAS_KIWI_API_KLIC')
 
     prompt = sys.argv[1]
 
     while True:
-        llm = RagLLM('AIzaSyAk4PV2S5h8QvztwobAo0AcetVsiRf7xEw')
+        llm = RagLLM('VAS_API_KLIC')
         response = llm.generate_content(prompt)
         if response.startswith("WIKI:"):
             wiki_query = response[len("WIKI:"):].strip()
@@ -79,6 +84,11 @@ if __name__ == "__main__":
             print(f"RATE: {rate_query}")
             rate_result = rates.retrieve(rate_query)
             prompt = f"\n\nDoplněné informace o kurzech:\n{rate_result}\n\nOdpověz na původní dotaz: {prompt}"
+        elif response.startswith("KIWI:"):
+            kiwi_query = response[len("KIWI:"):].strip()
+            print(f"KIWI: {kiwi_query}")
+            kiwi_result = kiwi.retrieve(kiwi_query)
+            prompt = f"\n\nDoplněné informace o letech:\n{kiwi_result}\n\nOdpověz na původní dotaz: {prompt}"
         else:
             break
 

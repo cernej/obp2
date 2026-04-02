@@ -3,15 +3,18 @@ import os
 from flask import Flask, jsonify, render_template, request
 
 from llm import RagLLM
-from rag import RateRAG, WeatherRAG, WikiRAG
+from rag import KiwiRAG, RateRAG, WeatherRAG, WikiRAG
 
 
 app = Flask(__name__)
 
 
+context = []
+
+
 def get_api_key() -> str:
 	"""Return Gemini API key from environment variable."""
-	return os.getenv("GEMINI_API_KEY", "AIzaSyAk4PV2S5h8QvztwobAo0AcetVsiRf7xEw").strip()
+	return os.getenv("GEMINI_API_KEY", "").strip()
 
 
 def run_rag_chat(user_prompt: str, max_steps: int = 4) -> str:
@@ -19,6 +22,7 @@ def run_rag_chat(user_prompt: str, max_steps: int = 4) -> str:
 	wiki = WikiRAG()
 	weather = WeatherRAG()
 	rates = RateRAG()
+	kiwi = KiwiRAG(os.getenv("KIWI_API_KEY", ""))
 
 	prompt = user_prompt
 	api_key = get_api_key()
@@ -27,10 +31,12 @@ def run_rag_chat(user_prompt: str, max_steps: int = 4) -> str:
 
 	for _ in range(max_steps):
 		llm = RagLLM(api_key)
-		response = llm.generate_content(prompt).strip()
+		response = llm.generate_content(prompt + "\n\nKontext nasi predchozi konverzace: " + "\n".join(context)).strip()
+		context.append(prompt)
 
 		if response.startswith("WIKI:"):
 			wiki_query = response[len("WIKI:") :].strip()
+			print(f"WIKI: {wiki_query}")
 			wiki_result = wiki.retrieve(wiki_query)
 			prompt = (
 				"\n\nDoplnene informace z Wikipedie:\n"
@@ -41,6 +47,7 @@ def run_rag_chat(user_prompt: str, max_steps: int = 4) -> str:
 
 		if response.startswith("WEATHER:"):
 			weather_query = response[len("WEATHER:") :].strip()
+			print(f"WEATHER: {weather_query}")
 			weather_result = weather.retrieve(weather_query)
 			prompt = (
 				"\n\nDoplnene informace o pocasi:\n"
@@ -51,6 +58,7 @@ def run_rag_chat(user_prompt: str, max_steps: int = 4) -> str:
 
 		if response.startswith("RATE:"):
 			rate_query = response[len("RATE:") :].strip()
+			print(f"RATE: {rate_query}")
 			rate_result = rates.retrieve(rate_query)
 			prompt = (
 				"\n\nDoplnene informace o kurzech:\n"
@@ -59,6 +67,19 @@ def run_rag_chat(user_prompt: str, max_steps: int = 4) -> str:
 			)
 			continue
 
+		if response.startswith("KIWI:"):
+			kiwi_query = response[len("KIWI:") :].strip()
+			print(f"KIWI: {kiwi_query}")
+			kiwi_result = kiwi.retrieve(kiwi_query)
+			prompt = (
+				"\n\nDoplnene informace o letech z Kiwi API:\n"
+				f"{kiwi_result}\n\n"
+				f"Odpovez na puvodni dotaz: {user_prompt}"
+			)
+			continue
+
+		context.append(response)
+		print(context)
 		return response
 
 	return "Odpoved se nepodarilo dokoncit, zkuste dotaz upresnit."
