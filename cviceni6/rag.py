@@ -176,7 +176,11 @@ class RateRAG(RAG):
 
 
 if __name__ == "__main__":
-    rag = WikiRAG()
-    query = "volby do poslanecke snemovny 2025"
+    # rag = WikiRAG()
+    # query = "volby do poslanecke snemovny 2025"
+    # result = rag.retrieve(query)
+    # print(result)
+    rag = WeatherRAG()
+    query = "50.0755,14.4378"  # Praha
     result = rag.retrieve(query)
     print(result)

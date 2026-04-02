@@ -1,0 +1,249 @@
+:root {
+  --bg-1: #f6f2e9;
+  --bg-2: #f3e2cc;
+  --surface: #fffaf3;
+  --surface-2: #fff;
+  --text: #1f1d1a;
+  --muted: #6e655a;
+  --line: #d9cdbd;
+  --accent: #d14f36;
+  --accent-2: #0d8b78;
+  --user-msg: #ffe3c6;
+  --assistant-msg: #ecfff8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "IBM Plex Sans", sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 15% 10%, #ffe8c5 0%, transparent 38%),
+    radial-gradient(circle at 90% 80%, #c6ffe9 0%, transparent 35%),
+    linear-gradient(165deg, var(--bg-1), var(--bg-2));
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+}
+
+.bg-shape {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(4px);
+}
+
+.bg-shape-a {
+  width: 28vmax;
+  height: 28vmax;
+  border-radius: 45% 55% 56% 44% / 57% 35% 65% 43%;
+  background: color-mix(in hsl, var(--accent) 20%, transparent);
+  top: -8vmax;
+  left: -6vmax;
+  animation: drift 12s ease-in-out infinite alternate;
+}
+
+.bg-shape-b {
+  width: 24vmax;
+  height: 24vmax;
+  border-radius: 52% 48% 34% 66% / 43% 53% 47% 57%;
+  background: color-mix(in hsl, var(--accent-2) 22%, transparent);
+  right: -8vmax;
+  bottom: -7vmax;
+  animation: drift 14s ease-in-out infinite alternate-reverse;
+}
+
+.chat-shell {
+  position: relative;
+  z-index: 1;
+  width: min(920px, 100%);
+  height: min(88vh, 860px);
+  border: 1px solid var(--line);
+  background: linear-gradient(135deg, var(--surface), var(--surface-2));
+  border-radius: 24px;
+  box-shadow:
+    0 16px 35px rgba(44, 25, 0, 0.13),
+    0 2px 8px rgba(66, 39, 1, 0.1);
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  animation: reveal 0.7s ease both;
+}
+
+.chat-header {
+  padding: 1.1rem 1.3rem;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(120deg, #fff6e5, #fff5ef);
+}
+
+.chat-header h1 {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(1.35rem, 2.1vw, 2rem);
+  letter-spacing: 0.02em;
+}
+
+.chat-header p {
+  margin: 0.3rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.chat-window {
+  padding: 1rem;
+  overflow-y: auto;
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.msg {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 0.75rem 0.9rem;
+  max-width: min(85%, 720px);
+  animation: pop 0.2s ease;
+}
+
+.msg h3 {
+  margin: 0;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.86rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.msg p {
+  margin: 0.42rem 0 0;
+  white-space: pre-wrap;
+  line-height: 1.45;
+}
+
+.msg-user {
+  margin-left: auto;
+  background: var(--user-msg);
+  border-color: #efb575;
+}
+
+.msg-assistant {
+  margin-right: auto;
+  background: var(--assistant-msg);
+  border-color: #96d8c8;
+}
+
+.chat-form {
+  border-top: 1px solid var(--line);
+  background: #fffbf5;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.7rem;
+  padding: 0.85rem;
+}
+
+#chat-input {
+  font: inherit;
+  color: var(--text);
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.8rem 0.9rem;
+  resize: none;
+  max-height: 220px;
+}
+
+#chat-input:focus {
+  outline: 2px solid color-mix(in hsl, var(--accent) 50%, white);
+  outline-offset: 2px;
+}
+
+#send-btn {
+  font-family: "Space Grotesk", sans-serif;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #d14f36, #ff7b3f);
+  color: #fff;
+  min-width: 108px;
+  padding: 0 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+#send-btn:hover {
+  transform: translateY(-1px);
+}
+
+#send-btn:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+@media (max-width: 760px) {
+  body {
+    padding: 0.5rem;
+  }
+
+  .chat-shell {
+    height: 96vh;
+    border-radius: 16px;
+  }
+
+  .chat-form {
+    grid-template-columns: 1fr;
+  }
+
+  #send-btn {
+    min-height: 44px;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  to {
+    transform: translate(18px, -14px) rotate(7deg);
+  }
+}

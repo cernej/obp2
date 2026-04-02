@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI asistent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="bg-shape bg-shape-a"></div>
+    <div class="bg-shape bg-shape-b"></div>
+
+    <main class="chat-shell">
+        <header class="chat-header">
+            <h1>AI asistent</h1>
+            <p>Ptej se na cokoliv. Odpoved generuje RagLLM na backendu.</p>
+        </header>
+
+        <section id="chat-window" class="chat-window" aria-live="polite"></section>
+
+        <form id="chat-form" class="chat-form" autocomplete="off">
+            <label for="chat-input" class="sr-only">Vas dotaz</label>
+            <textarea
+                id="chat-input"
+                name="message"
+                placeholder="Napis dotaz..."
+                rows="2"
+                required
+            ></textarea>
+            <button id="send-btn" type="submit">Odeslat</button>
+        </form>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
