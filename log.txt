@@ -1,0 +1,5 @@
+Volam funkci cau s parametry: (), {}
+Volam funkci cau s parametry: (), {}
+Volam funkci cau s parametry: (), {}
+Volam funkci ahoj s parametry: ('Vlado',), {}
+Volam funkci cau s parametry: (), {}
